@@ -1,0 +1,32 @@
+trigger:
+  - master
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  - name: resourceGroupName
+    value: 'thefinalday2demo-rg'
+  - name: environment
+    value: test
+steps:
+  - script: echo 'Hello World!'
+    displayName: 'Saying Hello'
+  - task: AzureCLI@2
+    displayName: 'Creating resource group'
+    inputs: 
+      azureSubscription: testownersubscription
+      scriptType: pscore
+      scriptLocation: inlineScript
+      inlineScript: |
+        az group create --name $(resourceGroupName) --location westeurope
+
+  - task: AzureCLI@2
+    displayName: 'Creating Storage Account by bicep'
+    inputs: 
+      azureSubscription: testownersubscription
+      scriptType: pscore
+      scriptLocation: inlineScript
+      inlineScript: |
+        az deployment group create --resource-group $(resourceGroupName)  --template-file ./templates/storeaccount.bicep --parameters ./parameters/$(environment)/storageaccount.json
+       
